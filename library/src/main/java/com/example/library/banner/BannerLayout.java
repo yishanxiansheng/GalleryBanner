@@ -9,10 +9,12 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.LayerDrawable;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.OrientationHelper;
 import android.support.v7.widget.RecyclerView;
+import android.text.Html;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -21,6 +23,7 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.example.library.R;
 import com.example.library.banner.layoutmanager.CenterSnapHelper;
@@ -38,8 +41,8 @@ public class BannerLayout extends FrameLayout {
     /**
      * 指示器的点
      */
-    private Drawable mSelectedDrawable;
-    private Drawable mUnselectedDrawable;
+    //private Drawable mSelectedDrawable;
+    //private Drawable mUnselectedDrawable;
 
     /**
      * 指示器间距
@@ -64,6 +67,8 @@ public class BannerLayout extends FrameLayout {
     private BannerLayoutManager mLayoutManager;
 
     private int WHAT_AUTO_PLAY = 1000;
+
+    private Context mContext;
 
     private boolean hasInit;
     private int bannerSize = 1;
@@ -98,6 +103,7 @@ public class BannerLayout extends FrameLayout {
 
     public BannerLayout(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+        mContext = context;
         initView(context, attrs);
     }
 
@@ -111,24 +117,24 @@ public class BannerLayout extends FrameLayout {
         itemSpace = a.getInt(R.styleable.BannerLayout_itemSpace, 20);
         centerScale = a.getFloat(R.styleable.BannerLayout_centerScale, 1.2f);
         moveSpeed = a.getFloat(R.styleable.BannerLayout_moveSpeed, 1.0f);
-        if (mSelectedDrawable == null) {
-            //绘制默认选中状态图形 GradientDrawable给布局添加背景
-            GradientDrawable selectedGradientDrawable = new GradientDrawable();
-            selectedGradientDrawable.setShape(GradientDrawable.OVAL);
-            selectedGradientDrawable.setColor(Color.RED);
-            selectedGradientDrawable.setSize(dp2px(5), dp2px(5));
-            selectedGradientDrawable.setCornerRadius(dp2px(5) / 2);
-            mSelectedDrawable = new LayerDrawable(new Drawable[]{selectedGradientDrawable});
-        }
-        if (mUnselectedDrawable == null) {
-            //绘制默认未选中状态图形
-            GradientDrawable unSelectedGradientDrawable = new GradientDrawable();
-            unSelectedGradientDrawable.setShape(GradientDrawable.OVAL);
-            unSelectedGradientDrawable.setColor(Color.GRAY);
-            unSelectedGradientDrawable.setSize(dp2px(5), dp2px(5));
-            unSelectedGradientDrawable.setCornerRadius(dp2px(5) / 2);
-            mUnselectedDrawable = new LayerDrawable(new Drawable[]{unSelectedGradientDrawable});
-        }
+//        if (mSelectedDrawable == null) {
+//            //绘制默认选中状态图形 GradientDrawable给布局添加背景
+//            GradientDrawable selectedGradientDrawable = new GradientDrawable();
+//            selectedGradientDrawable.setShape(GradientDrawable.OVAL);
+//            selectedGradientDrawable.setColor(Color.RED);
+//            selectedGradientDrawable.setSize(dp2px(5), dp2px(5));
+//            selectedGradientDrawable.setCornerRadius(dp2px(5) / 2);
+//            mSelectedDrawable = new LayerDrawable(new Drawable[]{selectedGradientDrawable});
+//        }
+//        if (mUnselectedDrawable == null) {
+//            //绘制默认未选中状态图形
+//            GradientDrawable unSelectedGradientDrawable = new GradientDrawable();
+//            unSelectedGradientDrawable.setShape(GradientDrawable.OVAL);
+//            unSelectedGradientDrawable.setColor(Color.GRAY);
+//            unSelectedGradientDrawable.setSize(dp2px(5), dp2px(5));
+//            unSelectedGradientDrawable.setCornerRadius(dp2px(5) / 2);
+//            mUnselectedDrawable = new LayerDrawable(new Drawable[]{unSelectedGradientDrawable});
+//        }
 
         indicatorMargin = dp2px(4);
         int marginLeft = dp2px(16);
@@ -283,6 +289,8 @@ public class BannerLayout extends FrameLayout {
             case MotionEvent.ACTION_CANCEL:
                 setPlaying(true);
                 break;
+            default:
+                break;
         }
         return super.dispatchTouchEvent(ev);
     }
@@ -323,25 +331,32 @@ public class BannerLayout extends FrameLayout {
         @Override
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
-            ImageView bannerPoint = new ImageView(getContext());
-            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT);
-            lp.setMargins(indicatorMargin, indicatorMargin, indicatorMargin, indicatorMargin);
-            bannerPoint.setLayoutParams(lp);
-            return new RecyclerView.ViewHolder(bannerPoint) {
+            TextView bannerText = new TextView(getContext());
+            RecyclerView.LayoutParams lp = new RecyclerView.LayoutParams(dp2px(38),
+                    dp2px(19));
+            lp.setMargins(indicatorMargin, indicatorMargin, dp2px(40), indicatorMargin);
+            bannerText.setLayoutParams(lp);
+
+            return new RecyclerView.ViewHolder(bannerText) {
             };
         }
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            ImageView bannerPoint = (ImageView) holder.itemView;
-            bannerPoint.setImageDrawable(currentPosition == position ? mSelectedDrawable : mUnselectedDrawable);
+            TextView bannerText = (TextView) holder.itemView;
+            bannerText.setBackground(ContextCompat.getDrawable(mContext, R.drawable.num_indicator_bg));
+            bannerText.setTextColor(Color.WHITE);
+            int current = currentPosition + 1;
+            String str = current + " " + "<font><small> / </small></font>" + " " + bannerSize;
+            bannerText.setText(Html.fromHtml(str));
+            bannerText.setTextSize(13);
+            bannerText.setPadding(dp2px(7), 0, 0, 0);
 
         }
 
         @Override
         public int getItemCount() {
-            return bannerSize;
+            return 1;
         }
     }
 
