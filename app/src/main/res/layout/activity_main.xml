@@ -14,7 +14,7 @@
         android:layout_height="400dp"
         app:autoPlaying="true"
         app:centerScale="1.3"
-        app:itemSpace="60"
+        app:itemSpace="40"
         app:interval="2000"
         app:moveSpeed="1" />
 </LinearLayout>
